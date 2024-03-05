@@ -1,5 +1,6 @@
 package com.jayesh.flutter_contact_picker
 
+import android.annotation.SuppressLint
 import androidx.annotation.NonNull;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -28,23 +29,12 @@ public class FlutterContactPickerPlugin: FlutterPlugin, MethodCallHandler,
   private var pendingResult: Result? = null
   private  val PICK_CONTACT = 2015
 
-  override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    channel = MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "flutter_native_contact_picker")
+  override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_native_contact_picker")
     channel.setMethodCallHandler(this);
   }
 
-  // This static function is optional and equivalent to onAttachedToEngine. It supports the old
-  // pre-Flutter-1.12 Android projects. You are encouraged to continue supporting
-  // plugin registration via this function while apps migrate to use the new Android APIs
-  // post-flutter-1.12 via https://flutter.dev/go/android-project-migration.
-  //
-  // It is encouraged to share logic between onAttachedToEngine and registerWith to keep
-  // them functionally equivalent. Only one of onAttachedToEngine or registerWith will be called
-  // depending on the user's project. onAttachedToEngine or registerWith must both be defined
-  // in the same class.
-
-
-  override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+  override fun onMethodCall(call: MethodCall, result: Result) {
     if (call.method == "selectContact") {
       if (pendingResult != null) {
         pendingResult!!.error("multiple_requests", "Cancelled by a second request.", null)
@@ -59,19 +49,17 @@ public class FlutterContactPickerPlugin: FlutterPlugin, MethodCallHandler,
     }
   }
 
-  override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+  override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
   }
 
-  override fun onAttachedToActivity(@NonNull p0: ActivityPluginBinding) {
+  override fun onAttachedToActivity(p0: ActivityPluginBinding) {
     this.activity = p0.activity
 
-//    channel?.setMethodCallHandler(this)
     p0.addActivityResultListener(this)
   }
 
   override fun onDetachedFromActivityForConfigChanges() {
-//    p0.removeActivityResultListener(this)
     this.activity = null
   }
 
@@ -84,6 +72,7 @@ public class FlutterContactPickerPlugin: FlutterPlugin, MethodCallHandler,
     this.activity = null
   }
 
+  @SuppressLint("Range")
   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
     if (requestCode != PICK_CONTACT) {
       return false
@@ -121,13 +110,6 @@ public class FlutterContactPickerPlugin: FlutterPlugin, MethodCallHandler,
   }
 
   companion object {
-
     private const val PICK_CONTACT = 2015
-
-//    @JvmStatic
-//    fun registerWith(registrar: Registrar) {
-//      val channel = MethodChannel(registrar.messenger(), "contact_picker")
-//      channel.setMethodCallHandler(ContactpickerPlugin(registrar, channel))
-//    }
   }
 }
